@@ -14,17 +14,33 @@ from fastapi.staticfiles import StaticFiles
 import asyncpg
 
 
-
+# Crear una instancia de la aplicación FastAPI
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="template"), name=("index.html","chef_1.jpg"))
+
+# Montar la carpeta estática para servir archivos estáticos como el HTML
+app.mount("/static", StaticFiles(directory="template"), name=("index.html"))
+
+# Instanciar el motor de plantillas Jinja2
 templates = Jinja2Templates(directory="template")
 
+# Ruta principal para la página de inicio
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# Ruta para solicitar una receta
 @app.get('/pedir_receta')
 async def receta(ingredientes_usuario: str):
+    """
+    Endpoint para solicitar una receta basada en ingredientes proporcionados por el usuario.
+
+    Args:
+        ingredientes_usuario (str): Cadena de texto con los ingredientes proporcionados por el usuario.
+
+    Returns:
+        str: Respuesta formateada de la IA con una receta sugerida.
+    """
+
     prompt_template = PromptTemplate.from_template(
         "Dime una receta nueva con estos ingredientes {ingredientes}."
     )
@@ -46,13 +62,22 @@ async def receta(ingredientes_usuario: str):
     return respuesta_formateada
 
 
-# Función asíncrona para guardar el prompt del usuario y la respuesta de la ia en la base de datos de render
+# Ruta para guardar el prompt del usuario y la respuesta de la IA en la base de datos
 @app.post('/guardar_receta')
 async def insert(data: dict, background_tasks: BackgroundTasks):
+    """
+    Endpoint para guardar el prompt del usuario y la respuesta de la IA en la base de datos.
+
+    Args:
+        data (dict): Diccionario con los datos a ser guardados.
+        background_tasks (BackgroundTasks): Tareas en segundo plano para guardar en la base de datos.
+
+    Returns:
+        dict: Mensaje de confirmación de recepción de datos.
+    """
     pregunta = data.get("prompt_usuario")
     respuesta = data.get("respuesta_ia")
 
-    # Realizar tareas en segundo plano, como guardar en la base de datos
     background_tasks.add_task(save_to_database, pregunta, respuesta)
 
     return {"message": "Datos recibidos, se guardarán en la base de datos de render."}
@@ -86,8 +111,15 @@ async def save_to_database(prompt_usuario: str, respuesta_ia: str):
     except Exception as e:
         print(f"Error al guardar datos en la base de datos: {e}")
 
+# Ruta para mostrar el historial de recetas guardadas
 @app.get('/mostrar_historial')
 async def historial():
+    """
+    Endpoint para mostrar el historial de recetas guardadas en la base de datos.
+
+    Returns:
+        list: Lista de objetos de tipo asyncpg.Record(similares a diccionarios), cada uno representando una fila de la tabla de recetas.
+    """
 
     try:
         
@@ -95,6 +127,7 @@ async def historial():
         
         
         historial = await conn.fetch("SELECT id, prompt_usuario, respuesta_ia FROM recetas")
+        print(historial)
         
         
         await conn.close()
@@ -105,7 +138,6 @@ async def historial():
         raise HTTPException(status_code=500, detail=f"Error al obtener el historial: {e}")
 
 
-
-
+# Punto de entrada para ejecutar la aplicación
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

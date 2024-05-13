@@ -27,9 +27,7 @@ Este proyecto consiste en el desarrollo de una aplicación web que sirva como re
 
 El proyecto estará organizado de la siguiente manera:
 
-- **`app.py`:** Contendrá la lógica principal de la aplicación, incluyendo la definición de endpoints, la integración con OpenAI y la gestión de la base de datos.
-
-- **`database.py`:** Archivo que contendrá la configuración y funciones relacionadas con la base de datos PostgreSQL.
+- **`openai_recetas.py`:** Contendrá la lógica principal de la aplicación, incluyendo la definición de endpoints, la integración con OpenAI y la gestión de la base de datos.
 
 - **`Dockerfile`:** Archivo para la creación de la imagen Docker de la aplicación.
 
@@ -46,7 +44,7 @@ El proyecto estará organizado de la siguiente manera:
 
 ### Copia el siguiente codigo de Docker hub para hacer pull de la imagen de docker y haz run de la imagen para poder inicializar la app,(**!Recuerda que debes tener abierto Docker Desktop!**)
 
-- docker pull teret90/recetas:latest
+- docker pull teret90/recetas1:latest
 
 -PARA EJECUTAR PUEDES HACERLO DESDE TERMINAL:
 
