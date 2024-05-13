@@ -32,19 +32,17 @@ async def receta(ingredientes_usuario: str):
  
     llm = ChatOpenAI(api_key=openai_key)
 
-    # Define el rol del usuario en el prompt
+    
     prompt_usuario = {"role": "user", "content": prompt_template.format(ingredientes=ingredientes_usuario)}
 
-    # Hacemos la llamada al modelo de lenguaje con el prompt completo
+    
     respuesta = llm.invoke([{"role": "system", "content": "Eres un gran chef y nutricionista sólo sabes de esos campos, puedes dar recetas con menos de 500 palabras con los ingredientes que te diga el usuario en el prompt, si no te da ningún ingrediente tienes que darle una receta aleatoria con los ingredientes que quieras, cada vez una nueva. Escribes es español, si alguien mete otras palabras que no sean ingredientes responde amablemente que no puedes darles información que no sea de recetas"}, prompt_usuario])
     print("Respuesta del modelo:", respuesta.content)
 
-        # Formatear la respuesta con saltos de línea HTML
     respuesta_formateada = respuesta.content.replace('\n', '<br>')
 
     print("Respuesta del modelo:", respuesta_formateada)
 
-    # Devolver la respuesta formateada
     return respuesta_formateada
 
 
@@ -68,7 +66,7 @@ async def save_to_database(prompt_usuario: str, respuesta_ia: str):
         
         # Conectar a la base de datos PostgreSQL
         async with asyncpg.create_pool(DATABASE_URL) as pool:
-            # Comprobar si la tabla existe, y si no, crearla
+
             async with pool.acquire() as connection:
                 await connection.execute(
                     """
@@ -80,7 +78,6 @@ async def save_to_database(prompt_usuario: str, respuesta_ia: str):
                     """
                 )
 
-                # Ejecutar la consulta SQL para insertar los datos en la tabla
                 await connection.execute(
                     "INSERT INTO recetas (prompt_usuario, respuesta_ia) VALUES ($1, $2)",
                     prompt_usuario, respuesta_ia
@@ -88,6 +85,24 @@ async def save_to_database(prompt_usuario: str, respuesta_ia: str):
         print("Datos guardados correctamente en la base de datos.")
     except Exception as e:
         print(f"Error al guardar datos en la base de datos: {e}")
+
+@app.get('/mostrar_historial')
+async def historial():
+
+    try:
+        
+        conn = await asyncpg.connect(DATABASE_URL)
+        
+        
+        historial = await conn.fetch("SELECT id, prompt_usuario, respuesta_ia FROM recetas")
+        
+        
+        await conn.close()
+        
+        
+        return historial
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener el historial: {e}")
 
 
 

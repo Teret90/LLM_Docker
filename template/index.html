@@ -47,6 +47,7 @@
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
+            margin-bottom: 20px; /* Agregado para separar los botones del resto del contenido */
         }
         button:hover {
             background-color: #7b3fc8;
@@ -54,11 +55,26 @@
         #respuesta {
             margin-bottom: 20px;
         }
+        #historial {
+            margin-bottom: 20px;
+            overflow-x: auto; /* Agrega un scroll horizontal si el historial es demasiado ancho */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bienvenido a la Aplicación FastAPI recomendador de recetas</h1>
+        <h1>Bienvenido al recomendador de recetas</h1>
         <p>Ingresa los ingredientes que tienes a continuación:</p>
         <form id="form-ingredientes">
             <input type="text" id="ingredientes" name="ingredientes" placeholder="Ingresa los ingredientes">
@@ -66,22 +82,23 @@
         </form>
         <div id="respuesta"></div>
         <button id="guardar-interaccion">Guardar Interacción</button>
-        
+        <button id="mostrar-historial">Mostrar Historial</button>
+        <div id="historial"></div> <!-- Contenedor para mostrar el historial -->
     </div>
     
     <script>
         document.getElementById("form-ingredientes").addEventListener("submit", function(event) {
-    event.preventDefault();
-    var ingredientes = document.getElementById("ingredientes").value;
-    fetch("/pedir_receta?ingredientes_usuario=" + encodeURIComponent(ingredientes))
-        .then(response => response.text())
-        .then(data => {
-            // Formatear la respuesta con saltos de línea HTML
-            data = data.replace(/\n/g, "<br>");
-            // Mostrar la respuesta formateada en el elemento HTML
-            document.getElementById("respuesta").innerHTML = data;
+            event.preventDefault();
+            var ingredientes = document.getElementById("ingredientes").value;
+            fetch("/pedir_receta?ingredientes_usuario=" + encodeURIComponent(ingredientes))
+                .then(response => response.text())
+                .then(data => {
+                    // Formatear la respuesta con saltos de línea HTML
+                    data = data.replace(/\n/g, "<br>");
+                    // Mostrar la respuesta formateada en el elemento HTML
+                    document.getElementById("respuesta").innerHTML = data;
+                });
         });
-    });
 
         document.getElementById("guardar-interaccion").addEventListener("click", function() {
             var prompt_usuario = document.getElementById("ingredientes").value;
@@ -90,7 +107,6 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
-                
                 },
                 body: JSON.stringify({
                     "prompt_usuario": prompt_usuario,
@@ -108,7 +124,25 @@
             });
         });
 
-
+        document.getElementById("mostrar-historial").addEventListener("click", function() {
+            fetch("/mostrar_historial")
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Construir la tabla del historial
+                    var historialHTML = "<h2>Historial de Interacciones</h2><table><tr><th>ID</th><th>Prompt Usuario</th><th>Respuesta IA</th></tr>";
+                    data.forEach(entry => {
+                        historialHTML += `<tr><td>${entry.id}</td><td>${entry.prompt_usuario}</td><td>${entry.respuesta_ia}</td></tr>`;
+                    });
+                    historialHTML += "</table>";
+                    // Mostrar la tabla en el contenedor dedicado
+                    document.getElementById("historial").innerHTML = historialHTML;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Hubo un error al obtener el historial");
+                });
+        });
     </script>
 </body>
 </html>
