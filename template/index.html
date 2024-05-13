@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación FastAPI recomendador de recetas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: salmon;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #5824c8;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #5824c8;
+            color: #faf6f4;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7b3fc8;
+        }
+        #respuesta {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a la Aplicación FastAPI recomendador de recetas</h1>
+        <p>Ingresa los ingredientes que tienes a continuación:</p>
+        <form id="form-ingredientes">
+            <input type="text" id="ingredientes" name="ingredientes" placeholder="Ingresa los ingredientes">
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="respuesta"></div>
+        <button id="guardar-interaccion">Guardar Interacción</button>
+        
+    </div>
+    
+    <script>
+        document.getElementById("form-ingredientes").addEventListener("submit", function(event) {
+    event.preventDefault();
+    var ingredientes = document.getElementById("ingredientes").value;
+    fetch("/pedir_receta?ingredientes_usuario=" + encodeURIComponent(ingredientes))
+        .then(response => response.text())
+        .then(data => {
+            // Formatear la respuesta con saltos de línea HTML
+            data = data.replace(/\n/g, "<br>");
+            // Mostrar la respuesta formateada en el elemento HTML
+            document.getElementById("respuesta").innerHTML = data;
+        });
+    });
+
+        document.getElementById("guardar-interaccion").addEventListener("click", function() {
+            var prompt_usuario = document.getElementById("ingredientes").value;
+            var respuesta_ia = document.getElementById("respuesta").innerText;
+            fetch("/guardar_receta", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                
+                },
+                body: JSON.stringify({
+                    "prompt_usuario": prompt_usuario,
+                    "respuesta_ia": respuesta_ia
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert("Interacción guardada exitosamente");
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Hubo un error al guardar la interacción");
+            });
+        });
+
+
+    </script>
+</body>
+</html>

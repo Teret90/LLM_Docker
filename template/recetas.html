@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Recetas</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Recetas</h1>
+    <table id="recetas">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Prompt Usuario</th>
+                <th>Respuesta IA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Las filas de la tabla se cargarán dinámicamente aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        // Función para cargar y mostrar el historial de recetas
+        async function cargarHistorialRecetas() {
+            try {
+                // Realizar una solicitud GET para obtener el historial de recetas
+                const response = await fetch("/recetas");
+                const recetas = await response.json(); // Parsea la respuesta JSON directamente
+                
+                // Obtener la tabla del DOM
+                const tablaRecetas = document.getElementById("recetas");
+
+                // Limpiar la tabla antes de agregar nuevas filas
+                tablaRecetas.innerHTML = "";
+
+                // Iterar sobre los datos de las recetas y agregar filas a la tabla
+                recetas.forEach(receta => {
+                    const fila = `
+                        <tr>
+                            <td>${receta.id}</td>
+                            <td>${receta.prompt_usuario}</td>
+                            <td>${receta.respuesta_ia}</td>
+                        </tr>
+                    `;
+                    tablaRecetas.innerHTML += fila;
+                });
+            } catch (error) {
+                console.error("Error al cargar el historial de recetas:", error);
+            }
+        }
+
+        // Llamar a la función para cargar el historial de recetas cuando la página se cargue completamente
+        document.addEventListener("DOMContentLoaded", cargarHistorialRecetas);
+    </script>
+</body>
+</html>
+
